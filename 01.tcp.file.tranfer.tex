@@ -1,0 +1,49 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{listings}
+
+\title{Practical Work 1: TCP File Transfer}
+\author{Le Duy Anh}
+\date{26/11/2024}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+Briefly explain the goal of the task and the use of TCP/IP and sockets.
+
+\section{Protocol Design}
+Describe the protocol used for file transfer.
+\includegraphics[width=\textwidth]{protocol_diagram.png}
+
+\section{System Organization}
+Describe the system and include a diagram.
+\includegraphics[width=\textwidth]{system_organization.png}
+
+\section{Implementation}
+\subsection{Server}
+Explain the server-side implementation. Include code snippets:
+\begin{lstlisting}[language=Python]
+# Example server code
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# More code...
+\end{lstlisting}
+
+\subsection{Client}
+Explain the client-side implementation. Include code snippets:
+\begin{lstlisting}[language=Python]
+# Example client code
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# More code...
+\end{lstlisting}
+
+\section{Testing}
+Explain how you tested the system and the results.
+
+\section{Team Contributions}
+Describe who contributed to which part of the project.
+
+\section{Conclusion}
+Summarize what you learned and any challenges faced.
+
+\end{document}
