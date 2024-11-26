@@ -1,49 +1,150 @@
-\documentclass{article}
-\usepackage{graphicx}
-\usepackage{listings}
+\documentclass[a4paper,12pt]{article}
+\usepackage{graphicx} % For images
+\usepackage{listings} % For code
+\usepackage{color}    % For syntax highlighting
+\usepackage{amsmath}  % For math symbols (if needed)
+\usepackage{float}
 
+% Title and Author
 \title{Practical Work 1: TCP File Transfer}
 \author{Le Duy Anh}
-\date{26/11/2024}
+\date{\ 26/11/2024}
 
 \begin{document}
 \maketitle
 
 \section{Introduction}
-Briefly explain the goal of the task and the use of TCP/IP and sockets.
+This project uses Python sockets to implement a 1-to-1 file transfer system over TCP/IP. 
+The system allows a client to send files to a server while ensuring integrity via checksum validation.
+Enhancements include progress tracking and error handling, making it robust for large files.
 
 \section{Protocol Design}
-Describe the protocol used for file transfer.
-\includegraphics[width=\textwidth]{protocol_diagram.png}
+The file transfer protocol includes the following steps:
+\begin{enumerate}
+    \item The client connects to the server.
+    \item The client sends file metadata (name and size).
+    \item The server acknowledges and prepares to receive data.
+    \item The client sends the file in chunks.
+    \item The server verifies file integrity using a checksum.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{tcp_diagram.png}
+    \caption{Protocol Flow for File Transfer}
+\end{figure}
 
 \section{System Organization}
-Describe the system and include a diagram.
-\includegraphics[width=\textwidth]{system_organization.png}
+The system uses a client-server model, where the server listens for incoming connections, 
+and the client initiates the file transfer.
 
 \section{Implementation}
-\subsection{Server}
-Explain the server-side implementation. Include code snippets:
+The project uses Python’s socket library for communication. Key features include:
+\begin{itemize}
+    \item File transfer in chunks to support large files.
+    \item MD5 checksum for file integrity verification.
+    \item Progress tracking using the \texttt{tqdm} library.
+    \item Error handling for network and file issues.
+\end{itemize}
+
+\subsection{Server Code Snippet}
+
+\subsubsection{Receiving File Metadata}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Server_diagram.drawio.png}
+    \caption{Receiving File Metadata Diagram}
+\end{figure}
 \begin{lstlisting}[language=Python]
-# Example server code
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# More code...
+# Receiving file metadata
+file_metadata = conn.recv(1024).decode()
+filename, filesize = file_metadata.split(",")
+filesize = int(filesize)
 \end{lstlisting}
 
-\subsection{Client}
-Explain the client-side implementation. Include code snippets:
+\subsubsection{Receiving File in Chunks}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{receive_file_chunks_diagram.png}
+    \caption{Receiving File in Chunks Diagram}
+\end{figure}
+
 \begin{lstlisting}[language=Python]
-# Example client code
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# More code...
+# Receiving file in chunks
+received_bytes = 0
+with open(f"received_{filename}", "wb") as f:
+    progress = tqdm(total=filesize, unit="B", unit_scale=True, desc="Receiving")
+    while received_bytes < filesize:
+        chunk = conn.recv(1024)
+        if not chunk:
+            break
+        f.write(chunk)
+        received_bytes += len(chunk)
+        progress.update(len(chunk))
+    progress.close()
 \end{lstlisting}
+
+\subsection{Client Code Snippet}
+
+\subsubsection{Sending File Metadata}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{send_metadata_diagram.png}
+    \caption{Sending File Metadata Diagram}
+\end{figure}
+\begin{lstlisting}[language=Python]
+# Sending file metadata
+file_metadata = f"{filename},{filesize}"
+client_socket.send(file_metadata.encode())
+\end{lstlisting}
+
+\subsubsection{Sending File in Chunks}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{send_file_chunks_diagram.png}
+    \caption{Sending File in Chunks Diagram}
+\end{figure}
+\begin{lstlisting}[language=Python]
+# Sending file in chunks
+with open(filename, "rb") as f:
+    for chunk in tqdm(iter(lambda: f.read(1024), b""), desc="Sending"):
+        client_socket.send(chunk)
+\end{lstlisting}
+
 
 \section{Testing}
-Explain how you tested the system and the results.
+The system was tested using:
+\begin{itemize}
+    \item Small text files (e.g., \texttt{test.txt}).
+    \item Large binary files (e.g., images up to 100MB).
+    \item Verification tools for checksum (e.g., \texttt{md5sum}).
+\end{itemize}
 
-\section{Team Contributions}
-Describe who contributed to which part of the project.
+The table below summarizes the results:
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{File Type} & \textbf{Size} & \textbf{Result} \\ \hline
+Text File          & 1KB           & Successful       \\ \hline
+Image File         & 10MB          & Successful       \\ \hline
+Large File         & 100MB         & Successful       \\ \hline
+\end{tabular}
+\caption{Testing Results}
+\end{table}
+
+\section{Challenges and Solutions}
+Challenges included:
+\begin{itemize}
+    \item Handling large files efficiently.
+    \item Ensuring data integrity during transfer.
+\end{itemize}
+Solutions involved using chunked transfers and MD5 checksums.
 
 \section{Conclusion}
-Summarize what you learned and any challenges faced.
+This project demonstrates the implementation of a robust TCP file transfer system. 
+It highlights the importance of protocol design and error handling in distributed systems.
 
 \end{document}
